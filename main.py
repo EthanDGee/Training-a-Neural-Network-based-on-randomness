@@ -2,17 +2,26 @@ from math import inf
 from random import randint
 
 
+def simulate_dummy_games():
+	for player_count in range(1, 101):
+		print(player_count)
+		for x in range(1000):
+			dummy_game = Game(player_count, 10)
+			dummy_game.play_game()
+			dummy_game.save_score_to_file()
+
+
 class Game:
 	def __init__(self, player_count, total_round):
-		self.score = 0
+		self.running_point_total = 0
 
 		self.round_num = 0
 		self.total_rounds = total_round
 
 		self.roll_num = 0
-		self.rolls_since_double = inf  # can't remember pythons math.max equivalent
+		self.rolls_since_double = inf
 
-		self.starter_rounds = 3
+		self.STARTER_ROUNDS = 3
 
 		# Create Players
 		self.player_count = player_count
@@ -22,7 +31,7 @@ class Game:
 			self.players.append(Player(player))
 
 	def bankable(self):
-		return self.roll_num > self.starter_rounds
+		return self.roll_num > self.STARTER_ROUNDS
 
 	def roll_dice(self):
 		round_over = False
@@ -32,9 +41,9 @@ class Game:
 		doubles = dice0 == dice1
 		total = dice0 + dice1
 
-		print(f"{self.roll_num}: {total}, ", end='')
-		if doubles:
-			print("doubles", end='')
+		# print(f"{self.roll_num}: {total}, ", end='')
+		# if doubles:
+		# 	print("doubles", end='')
 
 		# UPDATE self.rolls_since_double
 		if doubles:
@@ -42,30 +51,39 @@ class Game:
 		else:
 			self.rolls_since_double += 1
 
-		# Update score and check to see if round ends
-		if self.roll_num < self.starter_rounds:
+		# Update running point total and check to see if round ends
+		if self.roll_num < self.STARTER_ROUNDS:
 			if total == 7:
-				self.score += 70
+				self.running_point_total += 70
 			else:
-				self.score += total
+				self.running_point_total += total
 		else:
 			if total == 7:
-				self.score = 0
+				self.running_point_total = 0
 				round_over = True
 			elif doubles:
-				self.score *= 2
+				self.running_point_total *= 2
 			else:
-				self.score += total
+				self.running_point_total += total
 
-		print(f"\nNew Score: {self.score}")
 		self.roll_num += 1
 
 		return round_over
 
 	def adjust_players_genetic_scores(self):
-		for player in self.players:
+
+		# Sort players by game score and then assign them a genetic score by using that to give the a linear score +
+		self.players = sorted(bank.players, key=lambda y: y.game_score, )
+
+		for placement, player in iter(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
-			player.score += int (player.game_score / self.player_count)
+			player.score += placement/self.player_count * 100
+
+	def median_game_score(self):
+		sorted_players = sorted(self.players, key=lambda x: x.game_score)
+
+		return sorted_players[int(self.player_count / 2)].game_score
+
 	def play_game(self):
 		for game_round in range(self.total_rounds):
 			self.play_round()
@@ -77,9 +95,19 @@ class Game:
 			self.roll_num = 0
 			self.rolls_since_double = 0
 
-		# Print Scorecard
+	def average_game_score(self):
+		# returns the average game score
+
+		average_score = 0
 		for player in self.players:
-			print(player)
+			average_score += player.game_score
+		average_score /= self.player_count
+
+		return average_score
+
+	def save_score_to_file(self):
+		with open("dummy_player_simulated_games.csv", 'a') as f:
+			f.write(f"{self.player_count},{self.median_game_score()},\n")
 
 	def print_score_card(self):
 		for player in self.players:
@@ -91,9 +119,7 @@ class Game:
 			round_over = self.roll_dice() or self.remaining_players == 0
 			if self.bankable() and not round_over:
 				self.ask_players_about_banking()
-		print("-_-_-_" * 6)
-		print(f"ROUND {self.round_num} OVER")
-		print("-_-_-_" * 6)
+
 
 		# reset bank-ability
 		for player in self.players:
@@ -101,8 +127,8 @@ class Game:
 
 	def ask_players_about_banking(self):
 		for player in self.players:
-			if not player.banked and player.decide_to_bank():
-				player.game_score += self.score
+			if not player.banked and player.dummy_decide_to_bank():
+				player.game_score += self.running_point_total
 				self.remaining_players -= 1
 
 
@@ -112,23 +138,26 @@ class Player:
 		self.game_score = 0
 		self.banked = False
 		self.id = player_id
-		self.times_banked = 0
 
-	def decide_to_bank(self):
-		# 	if input(f"{self.id}: BANK?\n") == 'y':
-		# 		self.banked = True
-		self.banked = randint(0, 3) == 2
-		if self.banked:
-			print(f"{self.id} banked.")
-			self.times_banked += 1
+	def dummy_decide_to_bank(self):
+		# FILLER FUNCTION JUST USED TO SIMULATE GAMES WHILE THERE IS NO AI
+		self.banked = randint(0, self.id) == 0
+
 		return self.banked
 
 	def __str__(self):
-		return (f"|{self.id.__str__().center(3, " ")}| {self.game_score.__str__().center(7, " ")} | "
-				f"{self.times_banked.__str__().center(3, " ")}|")
+		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
+
+	def run_tournament(self):
+		# Starts off with N players and plays a few games to reduce the affects of chance then removes the worst X
+		# players and repeats until there are Y remaining
+		pass
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-	new_game = Game(10, 10)
-	new_game.play_game()
+	bank = Game(10, 10)
+	for x in range(5):
+		bank.play_game()
+
+		bank.print_score_card()
+		print("--------"*5)
