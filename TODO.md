@@ -17,14 +17,13 @@
 
 ## Neurons
 **STARS ARE NEURONS THAT BEAR SOME VALIDITY1️⃣**
-- [ ] Bitterness
+- [x] Bitterness
 - [x] ⭐ game_score 
-- [ ] ⭐ score_ranking
-- [ ] ⭐ percent rounds_completed
-- [ ] last_roll_similarity_to_seven
-- [ ] ⭐ roll_num
+- [x] ⭐ score_ranking
+- [x] ⭐ percent rounds_completed
+- [x] last_roll_similarity_to_seven
+- [x] ⭐ roll_num
 - [x] percent_remaining_players
-- [ ] percent of best score
 
 ## Neural Network
 - [x] Select Neurons

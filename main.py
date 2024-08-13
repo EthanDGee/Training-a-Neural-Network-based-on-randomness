@@ -1,4 +1,4 @@
-from math import inf
+from math import inf, fabs
 from random import randint
 from copy import deepcopy
 
@@ -14,19 +14,26 @@ def simulate_dummy_games():
 
 class Game:
 	def __init__(self, player_count, total_round):
+		# SCCORE
 		self.running_point_total = 0
+		self.best_possible_score = 0
+		self.best_round_score = 0
 
+		# ROUND INFO
 		self.round_num = 0
 		self.total_rounds = total_round
+		self.percent_rounds_complete = 0
 
+		# ROLL INFO
 		self.roll_num = 0
 		self.rolls_since_double = inf
-
 		self.STARTER_ROUNDS = 3
+		self.last_roll_similarity_to_seven = 0
 
 		# Create Players
 		self.player_count = player_count
 		self.remaining_players = player_count
+		self.percent_remaining_players = 1.0
 		self.players = []
 		self.past_players = []
 		for player in range(player_count):
@@ -51,7 +58,7 @@ class Game:
 			# trim bottom 10
 			self.players = self.players[:-10]
 			self.player_count -= 10
-
+			self.reset_game()
 
 		# Now that 10 remain play one last game determine final rankings
 		self.play_game()
@@ -75,10 +82,12 @@ class Game:
 		descendants = []
 		for i in range(len(top_five)):  # 5 choose 2 grouping
 			for j in range(i, 5):
-				# Repeat 3 times for variety
-				for _ in range(3):
-					next_tournament_players.append(self.cross_over(top_five[i], top_five[j]))
+				if i != j:
+					# Repeat 3 times for variety
+					for _ in range(3):
+						descendants.append(self.cross_over(top_five[i], top_five[j]))
 
+		next_tournament_players.append(self.mutate(descendants))
 		# Fetch players from previous rounds
 
 		# 5 from 3 rounds ago
@@ -93,8 +102,6 @@ class Game:
 
 		self.clear_genetic_scores()
 
-
-
 	def roll_dice(self):
 		round_over = False
 		# Roll Dice
@@ -103,15 +110,13 @@ class Game:
 		doubles = dice0 == dice1
 		total = dice0 + dice1
 
-		# print(f"{self.roll_num}: {total}, ", end='')
-		# if doubles:
-		# 	print("doubles", end='')
-
-		# UPDATE self.rolls_since_double
 		if doubles:
 			self.rolls_since_double = 0
 		else:
 			self.rolls_since_double += 1
+
+		# Calculate similarity to seven
+		self.last_roll_similarity_to_seven = fabs(abs(total - 7) / 7 - 1)
 
 		# Update running point total and check to see if round ends
 		if self.roll_num < self.STARTER_ROUNDS:
@@ -121,6 +126,8 @@ class Game:
 				self.running_point_total += total
 		else:
 			if total == 7:
+				self.best_possible_score += self.running_point_total
+				self.best_round_score = self.running_point_total
 				self.running_point_total = 0
 				round_over = True
 			elif doubles:
@@ -141,6 +148,12 @@ class Game:
 			# score adjusted for player count as larger player count leads to higher scores
 			player.score += placement / self.player_count * 100
 
+	def adjust_plauer_ranking(self):
+		self.players = reversed(sorted(self.players, key=lambda x: x.game_score))
+
+		for place_ment, player in iter(self.players):
+			player.score_ranking = place_ment / self.player_count
+
 	def median_game_score(self):
 		sorted_players = sorted(self.players, key=lambda x: x.game_score)
 
@@ -151,11 +164,17 @@ class Game:
 			self.play_round()
 
 			self.round_num += 1
+			self.percent_rounds_complete = self.round_num / self.total_rounds
 
 			# reset round info
 			self.remaining_players = self.player_count
 			self.roll_num = 0
 			self.rolls_since_double = 0
+
+	def reset_game(self):
+		self.round_num = 0
+		self.percent_rounds_complete = 0
+		self.clear_bitterness()
 
 	def average_game_score(self):
 		# returns the average game score
@@ -182,7 +201,12 @@ class Game:
 			if self.bankable() and not round_over:
 				self.ask_players_about_banking()
 
-		# reset bank-ability
+		# reset bank-ability and other statistics
+		self.reset_bankability()
+		self.adjust_bitterness()
+		self.adjust_plauer_ranking()
+
+	def reset_bankability(self):
 		for player in self.players:
 			player.banked = False
 
@@ -191,6 +215,7 @@ class Game:
 			if not player.banked and player.dummy_decide_to_bank():
 				player.game_score += self.running_point_total
 				self.remaining_players -= 1
+				self.percent_remaining_players = self.remaining_players / self.player_count
 
 	def create_random_player(self):
 		pass
@@ -199,28 +224,49 @@ class Game:
 		for player in self.players:
 			player.score = 0
 
+	def clear_bitterness(self):
+		for player in self.players:
+			player.bitterness = 0
+			player.bitterness_memories = []
+
+	def adjust_bitterness(self):
+		for player in self.players:
+			# add memory
+			player.record_memory(player.banked_score - self.best_possible_score)
+			player.calculate_bitterness()
 
 
 class Player:
 	def __init__(self, player_id):
 		self.score = 0
 		self.game_score = 0
+		self.banked_score = 0
 		self.banked = False
-		self.id = player_id
+		self.id = player_id  # tournament id - iterated id
+		self.bitterness = 0
+		self.score_ranking = 1
+		self.bitterness = 0
+		self.bitterness_memories = []
 
-	def dummy_decide_to_bank(self):
+	def dummy_decide_to_bank(self, running_point_total, percent_rounds_completed, ):
 		# FILLER FUNCTION JUST USED TO SIMULATE GAMES WHILE THERE IS NO AI
 		self.banked = randint(0, self.id) == 0
+		if self.banked:
+			self.banked_score = running_point_total
 
 		return self.banked
 
 	def __str__(self):
 		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
 
-	def run_tournament(self):
-		# Starts off with N players and plays a few games to reduce the affects of chance then removes the worst X
-		# players and repeats until there are Y remaining
-		pass
+	def record_memory(self, points_missed_out):
+		self.bitterness_memories.insert(0, points_missed_out)
+
+	def calculate_bitterness(self):
+		# I tried to shape this like a human memory by having past rounds count progressively less
+		self.bitterness = 0
+		for rounds_ago, bitterness in iter(self.bitterness_memories):
+			self.bitterness += bitterness / rounds_ago
 
 
 if __name__ == '__main__':

@@ -15,12 +15,12 @@ adding inputs that might confuse the neural network/add unnecessary complexity.
 - percent_remaining_players
 - game_score
 - percent_of_rounds_completed
-- percent_difference_between_top_players
+- score_ranking
 
 Inputs that I chose not to implement
 
-- roll_num_difference_from_average_seven
-- rolls_similarity_seven
+- last_roll_num_difference_from_average_seven
+- roll_rolls_similarity_to_seven
 - times_banked
 
 # Scoring the Players Performance
