@@ -90,10 +90,10 @@ class Game:
 		# 2 from 10 rounds ago
 		if len(self.past_players) >= 10:
 			next_tournament_players.append(self.past_players[3])
-		#
+
+		self.clear_genetic_scores()
 
 
-		descendants = []
 
 	def roll_dice(self):
 		round_over = False
@@ -194,6 +194,11 @@ class Game:
 
 	def create_random_player(self):
 		pass
+
+	def clear_genetic_scores(self):
+		for player in self.players:
+			player.score = 0
+
 
 
 class Player:
