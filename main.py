@@ -1,5 +1,6 @@
 from math import inf
 from random import randint
+from copy import deepcopy
 
 
 def simulate_dummy_games():
@@ -27,11 +28,72 @@ class Game:
 		self.player_count = player_count
 		self.remaining_players = player_count
 		self.players = []
+		self.past_players = []
 		for player in range(player_count):
 			self.players.append(Player(player))
 
 	def bankable(self):
 		return self.roll_num > self.STARTER_ROUNDS
+
+	def run_tournament(self):
+
+		# Check to see if there are 50 players and create new players if necessary
+		if self.player_count < 50:
+			missing_players = 50 - self.player_count
+			for _ in range(missing_players):
+				self.create_random_player()
+
+		# Play Tournament
+		for game_round in range(4):
+			self.play_game()
+			self.adjust_players_genetic_scores()
+			self.players = sorted(bank.players, key=lambda y: y.score, )
+			# trim bottom 10
+			self.players = self.players[:-10]
+			self.player_count -= 10
+
+
+		# Now that 10 remain play one last game determine final rankings
+		self.play_game()
+		self.players = sorted(bank.players, key=lambda y: y.score, )
+		# adjust player rolling queue
+		self.past_players.insert(0, self.players[5:])
+
+		try:
+			self.past_players.pop(10)
+		except:
+			print("Player Queue Still Growing")
+
+	def generate_new_tournament_players(self):
+		next_tournament_players = self.players[10:]
+
+		self.players = sorted(bank.players, key=lambda y: y.score, )
+
+		top_five = deepcopy(self.players[:5])
+
+		# Cross over top five
+		descendants = []
+		for i in range(len(top_five)):  # 5 choose 2 grouping
+			for j in range(i, 5):
+				# Repeat 3 times for variety
+				for _ in range(3):
+					next_tournament_players.append(self.cross_over(top_five[i], top_five[j]))
+
+		# Fetch players from previous rounds
+
+		# 5 from 3 rounds ago
+		if len(self.past_players) >= 3:
+			next_tournament_players.append(self.past_players[2])
+		# 3 from 5 rounds ago
+		if len(self.past_players) >= 5:
+			next_tournament_players.append(self.past_players[4][3:])
+		# 2 from 10 rounds ago
+		if len(self.past_players) >= 10:
+			next_tournament_players.append(self.past_players[3])
+		#
+
+
+		descendants = []
 
 	def roll_dice(self):
 		round_over = False
@@ -77,7 +139,7 @@ class Game:
 
 		for placement, player in iter(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
-			player.score += placement/self.player_count * 100
+			player.score += placement / self.player_count * 100
 
 	def median_game_score(self):
 		sorted_players = sorted(self.players, key=lambda x: x.game_score)
@@ -120,7 +182,6 @@ class Game:
 			if self.bankable() and not round_over:
 				self.ask_players_about_banking()
 
-
 		# reset bank-ability
 		for player in self.players:
 			player.banked = False
@@ -130,6 +191,9 @@ class Game:
 			if not player.banked and player.dummy_decide_to_bank():
 				player.game_score += self.running_point_total
 				self.remaining_players -= 1
+
+	def create_random_player(self):
+		pass
 
 
 class Player:
@@ -160,4 +224,4 @@ if __name__ == '__main__':
 		bank.play_game()
 
 		bank.print_score_card()
-		print("--------"*5)
+		print("--------" * 5)

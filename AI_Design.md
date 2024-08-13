@@ -87,6 +87,9 @@ level, 1/4 for the second, and so on until they need to hit 1/2 of the time for 
 for them to reach the top 5 overall after five games we can be comfortable confident that they will be removed from
 the gene pool
 
+
+Summarized
+
 ## Strategies for mitigating randomness
 
 - Playing multiple rounds
