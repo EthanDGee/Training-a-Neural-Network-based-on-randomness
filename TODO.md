@@ -15,23 +15,28 @@
 
 # Neural Network
 
-## Neurons
+## Input Neurons
 **STARS ARE NEURONS THAT BEAR SOME VALIDITY1️⃣**
 - [x] Bitterness
 - [x] ⭐ game_score 
 - [x] ⭐ score_ranking
-- [x] ⭐ percent rounds_completed
-- [x] last_roll_similarity_to_seven
-- [x] ⭐ roll_num
 - [x] percent_remaining_players
+- [x] ⭐ percent rounds_completed
+- [x] ⭐ roll_num
+- [x] last_roll_similarity_to_seven
+- [x] rolls_since_last_double
 
 ## Neural Network
-- [x] Select Neurons
+- [x] Select Input Neurons
 - [ ] Select complexity
 - [ ] Create neural network
+- [x] create Nueron
+- [x] Neuron Mutation
+- [x] Random Neuron
+- [x] Activation/Transfer Function
 - [ ] player decision
 - [ ] create random Neural network
-- [ ] mutation
+- [ ] Neural Network mutation
 
 ## Training
 - [x] Design training

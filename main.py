@@ -1,6 +1,7 @@
-from math import inf, fabs
-from random import randint
+from math import inf, fabs, tanh
+from random import randint, choice, random
 from copy import deepcopy
+import numpy as np
 
 
 def simulate_dummy_games():
@@ -187,7 +188,7 @@ class Game:
 		return average_score
 
 	def save_score_to_file(self):
-		with open("dummy_player_simulated_games.csv", 'a') as f:
+		with open("simulated_games.csv", 'a') as f:
 			f.write(f"{self.player_count},{self.median_game_score()},\n")
 
 	def print_score_card(self):
@@ -267,6 +268,74 @@ class Player:
 		self.bitterness = 0
 		for rounds_ago, bitterness in iter(self.bitterness_memories):
 			self.bitterness += bitterness / rounds_ago
+
+
+class Neural_Network:
+	def __init__(self, num_inputs, num_hidden_layers, num_outputs):
+		self.num_inputs = num_inputs
+		self.inputs = []
+		self.num_hidden_layers = num_hidden_layers
+		self.num_outputs = num_outputs
+		self.outputs = []
+
+		self.learning_rate = 0.03
+
+	def select_output(self):
+		# return ID of max output
+		max_output = -inf
+		max_id = 0
+
+		for output_id, output in iter(self.outputs):
+			if output > max_output:
+				max_output = output
+				max_id = output_id
+
+		return max_id
+
+	class Neuron:
+		def __init__(self, num_inputs, num_weights, bias=None, inputs=None, weights=None):
+
+			self.num_inputs = num_inputs
+			self.num_weights = num_weights
+			self.inputs = inputs
+			self.output = 0
+			self.mutation_step = 0.03
+
+			# If empty assign random weights and biases
+			if bias is None:
+				bias = random()
+
+			self.bias = bias
+
+			if weights is None:
+				weights = [random() for _ in range(num_weights)]
+
+			self.weights = weights
+
+		def mutate(self):
+			# Adjust Bias
+			self.bias += choice([-self.mutation_step, self.mutation_step])
+
+			# Adjust Bias/Weights
+			for id in range(self.num_weights):
+				self.inputs[id] += choice([-self.mutation_step, self.mutation_step])
+				self.weights[id] += choice([-self.mutation_step, self.mutation_step])
+
+
+		def activation(self, num):
+			return (tanh(num) + 1) / 2
+
+		def calculate_output(self):
+			product = 0
+			for id, input in iter(self.inputs):
+				product += input * self.weights[id]
+
+			product += self.bias
+
+			self.output = self.activation(product)
+
+			return self.output
+
 
 
 if __name__ == '__main__':
