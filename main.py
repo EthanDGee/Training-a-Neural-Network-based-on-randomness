@@ -21,6 +21,7 @@ class Game:
 		self.rolls_since_double = inf
 		self.STARTER_ROUNDS = 3
 		self.last_roll_similarity_to_seven = 0
+		self.roll_total = 0
 
 		# Create Players
 		self.player_count = player_count
@@ -102,7 +103,7 @@ class Game:
 		dice0 = randint(1, 6)
 		dice1 = randint(1, 6)
 		doubles = dice0 == dice1
-		total = dice0 + dice1
+		self.roll_total = dice0 + dice1
 
 		if doubles:
 			self.rolls_since_double = 0
@@ -110,16 +111,16 @@ class Game:
 			self.rolls_since_double += 1
 
 		# Calculate similarity to seven
-		self.last_roll_similarity_to_seven = fabs(abs(total - 7) / 7 - 1)
+		self.last_roll_similarity_to_seven = fabs(abs(self.roll_total - 7) / 7 - 1)
 
 		# Update running point total and check to see if round ends
 		if self.roll_num < self.STARTER_ROUNDS:
-			if total == 7:
+			if self.roll_total == 7:
 				self.running_point_total += 70
 			else:
-				self.running_point_total += total
+				self.running_point_total += self.roll_total
 		else:
-			if total == 7:
+			if self.roll_total == 7:
 				self.best_possible_score += self.running_point_total
 				self.best_round_score = self.running_point_total
 				self.running_point_total = 0
@@ -127,7 +128,7 @@ class Game:
 			elif doubles:
 				self.running_point_total *= 2
 			else:
-				self.running_point_total += total
+				self.running_point_total += self.roll_total
 
 		self.roll_num += 1
 
@@ -136,11 +137,11 @@ class Game:
 	def adjust_players_genetic_scores(self):
 
 		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
-		self.players = sorted(bank.players, key=lambda y: y.game_score, )
+		self.players = sorted(self.players, key=lambda y: y.game_score, )
 
 		for placement, player in iter(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
-			player.score += placement / self.player_count * 100
+			player.score += int(placement / self.player_count * 100)
 
 	def adjust_player_ranking(self):
 		self.players = reversed(sorted(self.players, key=lambda y: y.game_score))
@@ -239,7 +240,7 @@ class Game:
 
 
 class Player:
-	def __init__(self, player_id: str):
+	def __init__(self, player_id):
 		self.score = 0
 		self.game_score = 0
 		self.banked_score = 0
@@ -284,7 +285,7 @@ class Player:
 
 	def cross_over(self, parent0, parent1):
 		# Merges 2 neural networks
-		self.network = NeuralNetwork.cross_over(parent0.network, parent1.network)
+		self.network.cross_over(parent0.network, parent1.network)
 
 
 class NeuralNetwork:
@@ -293,7 +294,7 @@ class NeuralNetwork:
 
 		self.num_inputs = num_inputs
 		self.inputs = []
-		self.num_hidden_layers = len(layer_layout)
+		self.num_layers = len(layer_layout)
 		self.num_outputs = layer_layout[:-1]
 		self.output_layer = len(layer_layout) - 1
 		self.mutation_chance = 0.05
@@ -305,7 +306,7 @@ class NeuralNetwork:
 			for layer_num, neuron_amount in iter(hidden_layers):
 				hidden_layer = []
 				for i in range(neuron_amount):
-					hidden_layer.append(self.Neuron(input_numbers[i], input_numbers[i]))
+					hidden_layer.append(self.Neuron(input_numbers[i]))
 
 		self.layers = hidden_layers
 
@@ -321,6 +322,25 @@ class NeuralNetwork:
 
 		return max_id
 
+	def calculate_output(self, inputs: list):
+		# Calculate the first layer
+		self.inputs = inputs
+		next_layers_inputs = self.calculate_layer(inputs, self.layers[0])
+
+		for layer_num in range(1, self.num_layers - 1):
+			next_layers_inputs = self.calculate_layer(next_layers_inputs, self.layers[layer_num])
+
+	def calculate_layer(self, inputs: list, layer: list):
+		# calculates the outputs for all the neurons in a given layer
+		outputs = []
+
+		for neuron in layer:
+			neuron.inputs = inputs
+			neuron.calculate_output()
+			outputs.append(neuron.output)
+
+		return outputs
+
 	def mutate_network(self):
 		# goes through entire neural network and gives each neuron a chance to mutate
 
@@ -332,13 +352,13 @@ class NeuralNetwork:
 	def cross_over(self, parent0, parent1):
 		for layer_id, layer in iter(self.layers):
 			for neuron_id, neuron in iter(layer):
-				neuron = choice(parent0.layer[layer_id][neuron_id], parent1.layer[layer_id][neuron_id])
+				neuron = choice([parent0.layer[layer_id][neuron_id], parent1.layer[layer_id][neuron_id]])
 
 	class Neuron:
-		def __init__(self, num_inputs, num_weights, bias=None, inputs=None, weights=None):
+		def __init__(self, num_inputs, bias=None, inputs=[], weights=[]):
 
 			self.num_inputs = num_inputs
-			self.num_weights = num_weights
+			self.num_weights = num_inputs
 			self.inputs = inputs
 			self.output = 0
 			self.mutation_step = 0.03
@@ -349,21 +369,31 @@ class NeuralNetwork:
 
 			self.bias = bias
 
-			if weights is None:
-				weights = [random() for _ in range(num_weights)]
+			if len(weights) == 0:
+				weights = [random() for _ in range(self.num_weights)]
 
 			self.weights = weights
+
+		def __eq__(self, other):
+			equal = other.num_inputs == self.num_inputs
+			equal = equal & (other.inputs == self.inputs)
+			equal = equal & (other.bias == self.bias)
+			equal = equal & (other.output == self.output)
+			equal = equal & (other.weights == self.weights)
+			equal = equal & (other.num_weights == self.num_weights)
+			equal = equal & (other.mutation_step == self.mutation_step)
+			return equal
 
 		def mutate(self):
 			# Adjust Bias
 			self.bias += choice([-self.mutation_step, self.mutation_step])
 
-			# Adjust Bias/Weights
+			# Adjust Weights
 			for i in range(self.num_weights):
-				self.inputs[i] += choice([-self.mutation_step, self.mutation_step])
 				self.weights[i] += choice([-self.mutation_step, self.mutation_step])
 
-		def activation(self, num):
+		@staticmethod
+		def activation(num):
 			return (tanh(num) + 1) / 2
 
 		def calculate_output(self):
