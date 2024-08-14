@@ -35,9 +35,9 @@
 - [x] Random Neuron
 - [x] Activation/Transfer Function
 - [ ] player decision
-- [ ] create random Neural network
-- [ ] Neural Network mutation
-
+- [x] create random Neural network
+- [x] Neural Network mutation
+- [ ] Neural Network Calculate Output
 ## Training
 - [x] Design training
 - [x] use math to determine chance of bad ai's working there way through

@@ -61,7 +61,6 @@ class Game:
 		if len(self.past_players) >= 11:
 			self.past_players.pop(10)
 
-
 	def generate_new_tournament_players(self):
 		next_tournament_players = self.players[10:]
 
@@ -78,7 +77,11 @@ class Game:
 					for _ in range(3):
 						descendants.extend(self.cross_over(top_five[i], top_five[j]))
 
-		next_tournament_players.extend(self.mutate(descendants))
+		# Mutate Descendants
+		for descendant in descendants:
+			descendant.network.mutate_network()
+
+		next_tournament_players.extend(descendants)
 		# Fetch players from previous rounds
 
 		# 5 from 3 rounds ago
@@ -140,13 +143,13 @@ class Game:
 			player.score += placement / self.player_count * 100
 
 	def adjust_player_ranking(self):
-		self.players = reversed(sorted(self.players, key=lambda x: x.game_score))
+		self.players = reversed(sorted(self.players, key=lambda y: y.game_score))
 
 		for place_ment, player in iter(self.players):
 			player.score_ranking = place_ment / self.player_count
 
 	def median_game_score(self):
-		sorted_players = sorted(self.players, key=lambda x: x.game_score)
+		sorted_players = sorted(self.players, key=lambda y: y.game_score)
 
 		return sorted_players[int(self.player_count / 2)].game_score
 
@@ -193,18 +196,18 @@ class Game:
 				self.ask_players_about_banking()
 
 		# reset bank-ability and other statistics
-		self.reset_bankability()
+		self.reset_bank_ability()
 		self.adjust_bitterness()
 		self.adjust_player_ranking()
 
-	def reset_bankability(self):
+	def reset_bank_ability(self):
 		for player in self.players:
 			player.banked = False
 
 	def ask_players_about_banking(self):
 		for player in self.players:
-			if not player.banked and player.dummy_decide_to_bank():
-				player.game_score += self.running_point_total
+			if not player.banked and player.decide_to_bank(self.running_point_total, self.percent_rounds_completed,
+														   self.roll_num):
 				self.remaining_players -= 1
 				self.percent_remaining_players = self.remaining_players / self.player_count
 
@@ -226,9 +229,17 @@ class Game:
 			player.record_memory(player.banked_score - self.best_possible_score)
 			player.calculate_bitterness()
 
+	def cross_over(self, parent0, parent1):
+		# Given 2 Players cross over there neural networks
+
+		# To save time copy parent and then modify network
+		child = deepcopy(parent0)
+
+		child.cross_over(parent0, parent1)
+
 
 class Player:
-	def __init__(self, player_id):
+	def __init__(self, player_id: str):
 		self.score = 0
 		self.game_score = 0
 		self.banked_score = 0
@@ -238,14 +249,26 @@ class Player:
 		self.score_ranking = 1
 		self.bitterness = 0
 		self.bitterness_memories = []
+		self.network = NeuralNetwork(4, [4, 4, 2])
 
-	def dummy_decide_to_bank(self, running_point_total, percent_rounds_completed, ):
+	def dummy_decide_to_bank(self, running_point_total, percent_rounds_completed):
 		# FILLER FUNCTION JUST USED TO SIMULATE GAMES WHILE THERE IS NO AI
 		self.banked = randint(0, self.id) == 0
 		if self.banked:
 			self.banked_score = running_point_total
 
 		return self.banked
+
+	def decide_to_bank(self, running_point_total, percent_rounds_completed, roll_num):
+
+		# Update inputs
+		self.network.inputs = [running_point_total, percent_rounds_completed, roll_num, self.score_ranking]
+
+		# if output 0 don't bank, 1 bank
+		if self.network.calculate_output() == 1:
+			self.banked = True
+			self.banked_score = running_point_total
+			self.score += running_point_total
 
 	def __str__(self):
 		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
@@ -259,16 +282,21 @@ class Player:
 		for rounds_ago, bitterness in iter(self.bitterness_memories):
 			self.bitterness += bitterness / rounds_ago
 
+	def cross_over(self, parent0, parent1):
+		# Merges 2 neural networks
+		self.network = NeuralNetwork.cross_over(parent0.network, parent1.network)
 
-class Neural_Network:
-	def __init__(self, num_inputs, layer_layout, num_outputs, hidden_layers=None):
+
+class NeuralNetwork:
+	def __init__(self, num_inputs, layer_layout, hidden_layers=None):
 		# Layer layout is formatted like [5,3,3] which means 3 hidden layers with the requisite amount of neurons
 
 		self.num_inputs = num_inputs
 		self.inputs = []
 		self.num_hidden_layers = len(layer_layout)
-		self.num_outputs = num_outputs
-		self.outputs = []
+		self.num_outputs = layer_layout[:-1]
+		self.output_layer = len(layer_layout) - 1
+		self.mutation_chance = 0.05
 
 		if hidden_layers is None:
 			input_numbers = [num_inputs]
@@ -279,17 +307,32 @@ class Neural_Network:
 				for i in range(neuron_amount):
 					hidden_layer.append(self.Neuron(input_numbers[i], input_numbers[i]))
 
+		self.layers = hidden_layers
+
 	def select_output(self):
 		# return ID of max output
 		max_output = -inf
 		max_id = 0
 
-		for output_id, output in iter(self.outputs):
+		for output_id, output in iter(self.layers[self.output_layer]):
 			if output > max_output:
 				max_output = output
 				max_id = output_id
 
 		return max_id
+
+	def mutate_network(self):
+		# goes through entire neural network and gives each neuron a chance to mutate
+
+		for layer in self.layers:
+			for neuron in layer:
+				if random() < self.mutation_chance:
+					neuron.mutate_network()
+
+	def cross_over(self, parent0, parent1):
+		for layer_id, layer in iter(self.layers):
+			for neuron_id, neuron in iter(layer):
+				neuron = choice(parent0.layer[layer_id][neuron_id], parent1.layer[layer_id][neuron_id])
 
 	class Neuron:
 		def __init__(self, num_inputs, num_weights, bias=None, inputs=None, weights=None):
@@ -316,17 +359,17 @@ class Neural_Network:
 			self.bias += choice([-self.mutation_step, self.mutation_step])
 
 			# Adjust Bias/Weights
-			for id in range(self.num_weights):
-				self.inputs[id] += choice([-self.mutation_step, self.mutation_step])
-				self.weights[id] += choice([-self.mutation_step, self.mutation_step])
+			for i in range(self.num_weights):
+				self.inputs[i] += choice([-self.mutation_step, self.mutation_step])
+				self.weights[i] += choice([-self.mutation_step, self.mutation_step])
 
 		def activation(self, num):
 			return (tanh(num) + 1) / 2
 
 		def calculate_output(self):
 			product = 0
-			for id, input in iter(self.inputs):
-				product += input * self.weights[id]
+			for i, input_value in iter(self.inputs):
+				product += input_value * self.weights[i]
 
 			product += self.bias
 
@@ -337,7 +380,7 @@ class Neural_Network:
 
 if __name__ == '__main__':
 	bank = Game(10, 10)
-	for x in range(5):
+	for _ in range(5):
 		bank.play_game()
 
 		bank.print_score_card()
