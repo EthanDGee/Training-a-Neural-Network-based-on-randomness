@@ -4,15 +4,6 @@ from copy import deepcopy
 import numpy as np
 
 
-def simulate_dummy_games():
-	for player_count in range(1, 101):
-		print(player_count)
-		for x in range(1000):
-			dummy_game = Game(player_count, 10)
-			dummy_game.play_game()
-			dummy_game.save_score_to_file()
-
-
 class Game:
 	def __init__(self, player_count, total_round):
 		# SCCORE
@@ -67,10 +58,9 @@ class Game:
 		# adjust player rolling queue
 		self.past_players.insert(0, self.players[5:])
 
-		try:
+		if len(self.past_players) >= 11:
 			self.past_players.pop(10)
-		except:
-			print("Player Queue Still Growing")
+
 
 	def generate_new_tournament_players(self):
 		next_tournament_players = self.players[10:]
@@ -86,20 +76,20 @@ class Game:
 				if i != j:
 					# Repeat 3 times for variety
 					for _ in range(3):
-						descendants.append(self.cross_over(top_five[i], top_five[j]))
+						descendants.extend(self.cross_over(top_five[i], top_five[j]))
 
-		next_tournament_players.append(self.mutate(descendants))
+		next_tournament_players.extend(self.mutate(descendants))
 		# Fetch players from previous rounds
 
 		# 5 from 3 rounds ago
 		if len(self.past_players) >= 3:
-			next_tournament_players.append(self.past_players[2])
+			next_tournament_players.extend(self.past_players[2])
 		# 3 from 5 rounds ago
 		if len(self.past_players) >= 5:
-			next_tournament_players.append(self.past_players[4][3:])
+			next_tournament_players.extend(self.past_players[4][3:])
 		# 2 from 10 rounds ago
 		if len(self.past_players) >= 10:
-			next_tournament_players.append(self.past_players[3])
+			next_tournament_players.extend(self.past_players[3])
 
 		self.clear_genetic_scores()
 
@@ -142,14 +132,14 @@ class Game:
 
 	def adjust_players_genetic_scores(self):
 
-		# Sort players by game score and then assign them a genetic score by using that to give the a linear score +
+		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
 		self.players = sorted(bank.players, key=lambda y: y.game_score, )
 
 		for placement, player in iter(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
 			player.score += placement / self.player_count * 100
 
-	def adjust_plauer_ranking(self):
+	def adjust_player_ranking(self):
 		self.players = reversed(sorted(self.players, key=lambda x: x.game_score))
 
 		for place_ment, player in iter(self.players):
@@ -205,7 +195,7 @@ class Game:
 		# reset bank-ability and other statistics
 		self.reset_bankability()
 		self.adjust_bitterness()
-		self.adjust_plauer_ranking()
+		self.adjust_player_ranking()
 
 	def reset_bankability(self):
 		for player in self.players:
@@ -271,14 +261,23 @@ class Player:
 
 
 class Neural_Network:
-	def __init__(self, num_inputs, num_hidden_layers, num_outputs):
+	def __init__(self, num_inputs, layer_layout, num_outputs, hidden_layers=None):
+		# Layer layout is formatted like [5,3,3] which means 3 hidden layers with the requisite amount of neurons
+
 		self.num_inputs = num_inputs
 		self.inputs = []
-		self.num_hidden_layers = num_hidden_layers
+		self.num_hidden_layers = len(layer_layout)
 		self.num_outputs = num_outputs
 		self.outputs = []
 
-		self.learning_rate = 0.03
+		if hidden_layers is None:
+			input_numbers = [num_inputs]
+			input_numbers.extend(layer_layout)
+			hidden_layers = []
+			for layer_num, neuron_amount in iter(hidden_layers):
+				hidden_layer = []
+				for i in range(neuron_amount):
+					hidden_layer.append(self.Neuron(input_numbers[i], input_numbers[i]))
 
 	def select_output(self):
 		# return ID of max output
@@ -321,7 +320,6 @@ class Neural_Network:
 				self.inputs[id] += choice([-self.mutation_step, self.mutation_step])
 				self.weights[id] += choice([-self.mutation_step, self.mutation_step])
 
-
 		def activation(self, num):
 			return (tanh(num) + 1) / 2
 
@@ -335,7 +333,6 @@ class Neural_Network:
 			self.output = self.activation(product)
 
 			return self.output
-
 
 
 if __name__ == '__main__':
