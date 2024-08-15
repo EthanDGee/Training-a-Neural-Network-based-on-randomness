@@ -1,9 +1,9 @@
 import unittest
+from copy import deepcopy
+from random import randint
 from Player import Player
 from Game import Game
 from NeuralNetwork import NeuralNetwork
-from copy import deepcopy
-from random import randint
 
 
 class MyTestCase(unittest.TestCase):
@@ -111,6 +111,40 @@ class MyTestCase(unittest.TestCase):
 			player.record_memory(x * (-1 ** x))
 		player.calculate_bitterness()
 		self.assertEqual(-0.6456349206349207, player.bitterness)
+
+	def test_init_neuron(self):
+		# CHECK TO SEE IF THAT THE FUNCTION WORKS
+		neuron_0 = NeuralNetwork.Neuron(4)
+		self.assertFalse(neuron_0 is None)
+		neuron_5 = NeuralNetwork.Neuron(1)
+		self.assertFalse(neuron_5 is None)
+		neuron_3 = NeuralNetwork.Neuron(2)
+		self.assertFalse(neuron_3 is None)
+		neuron_2 = NeuralNetwork.Neuron(12)
+		self.assertFalse(neuron_2 is None)
+
+	def test_init_neural_network(self):
+		# JUST A SIMPLE CHECK TO SEE THAT
+
+		neural_network_0 = NeuralNetwork(3, [2, 4, 2, 1])
+		self.assertFalse(neural_network_0 is None)
+		self.assertEqual(4, len(neural_network_0.layers))
+
+		neural_network_1 = NeuralNetwork(1, [4, 12, 3])
+		self.assertFalse(neural_network_1 is None)
+		self.assertEqual(3, len(neural_network_1.layers))
+
+		neural_network_2 = NeuralNetwork(3, [2, 1, 2, 1])
+		self.assertFalse(neural_network_2 is None)
+		self.assertEqual(4, len(neural_network_2.layers))
+
+		neural_network_3 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
+		self.assertFalse(neural_network_3 is None)
+		self.assertEqual(8, len(neural_network_3.layers))
+
+		neural_network_4 = NeuralNetwork(3, [2])
+		self.assertFalse(neural_network_4 is None)
+		self.assertEqual(1, len(neural_network_4.layers))
 
 
 if __name__ == '__main__':
