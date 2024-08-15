@@ -153,11 +153,12 @@ class Game:
 	def adjust_players_fitness(self):
 
 		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
-		self.players = sorted(self.players, key=lambda y: y.game_score, )
+		self.players = reversed(sorted(self.players, key=lambda y: y.game_score, ))
 
-		for placement, player in iter(self.players):
+
+		for placement, player in enumerate(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
-			player.fitness += int(placement / self.player_count * 100)
+			player.fitness += int((placement + 1 )/ self.player_count * 100)
 
 	def clear_fitness_scores(self):
 		# Clears genetic scores for players
@@ -172,13 +173,13 @@ class Game:
 	def adjust_bitterness(self):
 		for player in self.players:
 			# add memory
-			player.record_memory(player.banked_score - self.best_possible_score)
+			player.record_memory(abs(player.banked_score - self.best_possible_score))
 			player.calculate_bitterness()
 
 	def adjust_player_ranking(self):
-		self.players = reversed(sorted(self.players, key=lambda y: y.game_score))
+		self.players = sorted(self.players, key=lambda y: y.game_score)
 
-		for place_ment, player in iter(self.players):
+		for place_ment, player in enumerate(self.players):
 			player.score_ranking = place_ment / self.player_count
 
 	# TRAINING/Tournament

@@ -17,7 +17,7 @@ class NeuralNetwork:
 			input_numbers = [num_inputs]
 			input_numbers.extend(layer_layout)
 			hidden_layers = []
-			for layer_num, neuron_amount in iter(hidden_layers):
+			for layer_num, neuron_amount in enumerate(hidden_layers):
 				hidden_layer = []
 				for i in range(neuron_amount):
 					hidden_layer.append(self.Neuron(input_numbers[i]))
@@ -29,7 +29,7 @@ class NeuralNetwork:
 		max_output = -inf
 		max_id = 0
 
-		for output_id, output in iter(self.layers[self.output_layer]):
+		for output_id, output in enumerate(self.layers[self.output_layer]):
 			if output > max_output:
 				max_output = output
 				max_id = output_id
@@ -64,8 +64,8 @@ class NeuralNetwork:
 					neuron.mutate_network()
 
 	def cross_over(self, parent0, parent1):
-		for layer_id, layer in iter(self.layers):
-			for neuron_id, neuron in iter(layer):
+		for layer_id, layer in enumerate(self.layers):
+			for neuron_id, neuron in enumerate(layer):
 				neuron = choice([parent0.layer[layer_id][neuron_id], parent1.layer[layer_id][neuron_id]])
 
 	class Neuron:
@@ -112,7 +112,7 @@ class NeuralNetwork:
 
 		def calculate_output(self):
 			product = 0
-			for i, input_value in iter(self.inputs):
+			for i, input_value in enumerate(self.inputs):
 				product += input_value * self.weights[i]
 
 			product += self.bias

@@ -1,4 +1,4 @@
-import NeuralNetwork
+from NeuralNetwork import NeuralNetwork
 from random import randint
 
 
@@ -56,8 +56,8 @@ class Player:
 	def calculate_bitterness(self):
 		# I tried to shape this like a human memory by having past rounds count progressively less
 		self.bitterness = 0
-		for rounds_ago, bitterness in iter(self.bitterness_memories):
-			self.bitterness += bitterness / rounds_ago
+		for rounds_ago, bitterness in enumerate(self.bitterness_memories):
+			self.bitterness += bitterness / (rounds_ago + 1)
 
 	def cross_over(self, parent0, parent1):
 		# Merges 2 neural networks
