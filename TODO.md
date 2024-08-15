@@ -1,17 +1,15 @@
 # Game
-
-## Game
  - [x] Dice Roll Logic
  - [x] Scoring System
  - [x] Play
  - [x] Rounds
- - [ ] best possible score
+ - [x] best possible score
 
-## Player
+# Player
 
 - [x] personal score
 - [x] Dummy Banking
-- 
+- [x] banking
 
 # Neural Network
 
@@ -28,25 +26,28 @@
 
 ## Neural Network
 - [x] Select Input Neurons
-- [ ] Select complexity
-- [ ] Create neural network
+- [x] Select complexity
+- [x] Create neural network
 - [x] create Nueron
 - [x] Neuron Mutation
 - [x] Random Neuron
 - [x] Activation/Transfer Function
-- [ ] player decision
+- x] player decision
 - [x] create random Neural network
 - [x] Neural Network mutation
-- [ ] Neural Network Calculate Output
+- [x] Neural Network Calculate Output
+
 ## Training
 - [x] Design training
 - [x] use math to determine chance of bad ai's working there way through
 - [x] Create the tournament
 - [x] Tournament re-population
-- [ ] Cross Breeding
-- [ ] Mutation
+- [x] Cross Breeding
+- [x] Mutation
 - [x] rolling queue 
 - [x] clear genetic score
-
+- [x] save players
+- [x] import players
+- [x] train()
 
 1️⃣ As determined by me so take that as you will 

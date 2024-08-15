@@ -24,7 +24,18 @@ class Player:
 		# NEURAL NET
 		self.network = NeuralNetwork(4, [4, 4, 2])
 
-	def dummy_decide_to_bank(self, running_point_total, percent_rounds_completed):
+	# GET PLAYER INFO
+	def __str__(self):
+		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
+
+	def get_tournament_id(self):
+		return int(self.id.split('-')[0])
+
+	def get_player_id(self):
+		return int(self.id.split('-')[1])
+
+	# BANKING
+	def dummy_decide_to_bank(self, running_point_total):
 		# FILLER FUNCTION JUST USED TO SIMULATE GAMES WHILE THERE IS NO AI
 		self.banked = randint(0, self.id) == 0
 		if self.banked:
@@ -47,8 +58,7 @@ class Player:
 
 		return self.banked
 
-	def __str__(self):
-		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
+	# PLAYER INPUTS
 
 	def record_memory(self, points_missed_out):
 		self.bitterness_memories.insert(0, points_missed_out)
@@ -58,6 +68,8 @@ class Player:
 		self.bitterness = 0
 		for rounds_ago, bitterness in enumerate(self.bitterness_memories):
 			self.bitterness += bitterness / (rounds_ago + 1)
+
+	# TRAINING
 
 	def cross_over(self, parent0, parent1):
 		# Merges 2 neural networks

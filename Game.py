@@ -2,6 +2,7 @@ from math import inf, fabs
 from random import randint
 from copy import deepcopy
 from Player import Player
+import pickle
 
 
 class Game:
@@ -25,14 +26,14 @@ class Game:
 
 		# Create Players
 		self.player_id = 0
-		self.tournament_id = 0
+		self.tournament_num = 0
 		self.player_count = player_count
 		self.remaining_players = player_count
 		self.percent_remaining_players = 1.0
 		self.players = []
 		self.past_players = []
 		for player in range(player_count):
-			self.players.append(Player(f"{self.tournament_id}-{self.player_id}"))
+			self.players.append(Player(f"{self.tournament_num}-{self.player_id}"))
 			self.player_id += 1
 
 	# GAME LOGIC METHODS
@@ -144,7 +145,7 @@ class Game:
 
 	def create_random_player(self):
 		# Gives a new Player
-		new_player = Player(f"{self.tournament_id}-{self.player_id}")
+		new_player = Player(f"{self.tournament_num}-{self.player_id}")
 		self.player_id += 1
 
 		return new_player
@@ -155,10 +156,9 @@ class Game:
 		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
 		self.players = reversed(sorted(self.players, key=lambda y: y.game_score, ))
 
-
 		for placement, player in enumerate(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
-			player.fitness += int((placement + 1 )/ self.player_count * 100)
+			player.fitness += int((placement + 1) / self.player_count * 100)
 
 	def clear_fitness_scores(self):
 		# Clears genetic scores for players
@@ -210,7 +210,7 @@ class Game:
 		if len(self.past_players) >= 11:
 			self.past_players.pop(10)
 
-		self.tournament_id += 1
+		self.tournament_num += 1
 		self.player_id = 0
 
 	def generate_new_tournament_players(self):
@@ -254,3 +254,37 @@ class Game:
 		child = deepcopy(parent0)  # To save time copy parent and then modify network
 		child.cross_over(parent0, parent1)
 		return child
+
+	def train(self, num_tournaments, save_file):
+
+		for tournament in range(num_tournaments):
+			self.run_tournament()
+			self.generate_new_tournament_players()
+
+		self.save_players(save_file)
+
+	# SAVING?IMPORTING_PLAYERS
+	def save_players(self, file_name):
+		file = open(file_name, 'wb')
+		pickle.dump(self.players, file)
+		file.close()
+
+	def import_players(self, file_name):
+		file = open(file_name, 'rb')
+		self.players = pickle.load(file)
+		file.close()
+
+		# Update Tournament
+		max_tournament = -1
+		for player in self.players:
+			player_tournament = player.get_tournament_id()  # called here so that it only needs to be called once
+			if max_tournament < player_tournament:
+				max_tournament = player_tournament
+
+		self.tournament_num = max_tournament + 1
+
+		# CLEAR DIAGNOSTIC DATA
+
+		self.clear_fitness_scores()
+		self.clear_bitterness()
+
