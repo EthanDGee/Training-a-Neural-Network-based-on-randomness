@@ -39,10 +39,10 @@ class MyTestCase(unittest.TestCase):
 		for x in range(len(game.players)):
 			game.players[x].game_score = game_scores[x]
 
-		game.adjust_players_genetic_scores()
+		game.adjust_players_fitness()
 
 		for x, player in iter(game.players):
-			self.assertEqual(player.score, calculated_fitness[x])
+			self.assertEqual(player.fitness, calculated_fitness[x])
 
 	def test_neuron_output(self):
 
