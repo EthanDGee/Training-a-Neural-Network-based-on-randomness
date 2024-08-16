@@ -9,8 +9,7 @@ from NeuralNetwork import NeuralNetwork
 class MyTestCase(unittest.TestCase):
 	def test_rolls(self):
 		game = Game(10, 10)
-		possible_rolls = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-		for _ in range(10):
+		for _ in range(100):
 			game.roll_dice()
 			self.assertLessEqual(game.roll_total, 12)
 			self.assertGreaterEqual(game.roll_total, 2)
@@ -145,6 +144,72 @@ class MyTestCase(unittest.TestCase):
 		neural_network_4 = NeuralNetwork(3, [2])
 		self.assertFalse(neural_network_4 is None)
 		self.assertEqual(1, len(neural_network_4.layers))
+
+	def test_save_import(self):
+
+		temp_game = Game(5, 10)
+
+		save_file = "players0.json"
+		game0 = Game(100, 10)
+		game0.play_game()
+		game0.save_players(save_file)
+
+		temp_game.import_players(save_file)
+		for player_num in range(len(game0.players)):
+			temp_player = temp_game.players[player_num]
+			game0_player = game0.players[player_num]
+			print(temp_player)
+			print(game0_player)
+			self.assertEqual(game0_player, temp_player)
+
+	def test_run_tournament(self):
+		game_0 = Game(50, 10)
+		game_0.run_tournament()
+		self.assertEqual(10, len(game_0.players))
+
+	def test_generate_new_tournament_players(self):
+
+		game_0 = Game(10, 10)
+		game_0.run_tournament()
+		game_0.generate_new_tournament_players()
+		self.assertEqual(50, len(game_0.players))
+
+	def test_cross_over(self):
+
+		# TEST 0
+		# Parents
+		network_0 = NeuralNetwork(5, [5, 4, 2])
+		network_1 = NeuralNetwork(5, [5, 4, 2])
+
+		network_2 = NeuralNetwork(5, [5, 4, 2])
+		network_2.cross_over(network_0, network_1)
+
+		for layer in enumerate(network_2.layers):
+
+			# Check Sizes
+			self.assertEqual(len(network_0.layers[layer]), len(network_2.layers[layer]))
+			self.assertEqual(len(network_1.layers[layer]), len(network_2.layers[layer]))
+
+			for neuron in enumerate(network_2.layers[layer]):
+				# Check to see if their neurons come from one of the parents
+				self.assertTrue(network_0.layers[layer][neuron] == network_2.layers[layer][neuron] ^
+								network_1.layers[layer][neuron] == network_2.layers[layer][neuron])
+
+		# TEST 2
+		network_3 = NeuralNetwork(10, [3, 13, 7])
+		network_4 = NeuralNetwork(10, [3, 13, 7])
+
+		network_5 = NeuralNetwork(10, [3, 13, 7])
+		network_5.cross_over(network_3, network_4)
+
+		for layer in enumerate(network_5.layers):
+			self.assertEqual(len(network_3.layers[layer]), len(network_5.layers[layer]))
+			self.assertEqual(len(network_4.layers[layer]), len(network_5.layers[layer]))
+
+			for neuron in enumerate(network_5.layers[layer]):
+				# Check to see if their neurons come from one of the parents
+				self.assertTrue(network_3.layers[layer][neuron] == network_5.layers[layer][neuron] ^
+								network_4.layers[layer][neuron] == network_5.layers[layer][neuron])
 
 
 if __name__ == '__main__':

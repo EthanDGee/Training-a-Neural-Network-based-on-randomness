@@ -135,6 +135,7 @@ class Game:
 			f.write(f"{self.player_count},{self.median_game_score()},\n")
 
 	def print_score_card(self):
+		print(f"{" "*4}ID{" "*4}|  Fitness  |   Score   |")
 		for player in self.players:
 			print(player)
 
@@ -193,13 +194,21 @@ class Game:
 
 		# Play Tournament
 		for game_round in range(4):
+
+			print(f"{len(self.players)}->", end="")
+			self.print_score_card()
+
 			self.play_game()
 			self.adjust_players_fitness()
-			self.players = sorted(self.players, key=lambda y: y.fitness, )
+			self.players = sorted(self.players, key=lambda y: y.fitness)
+
 			# trim bottom 10
-			self.players = self.players[:-10]
+			self.players = self.players[0:self.player_count - 10]
 			self.player_count -= 10
+			print(len(self.players))
 			self.reset_game()
+
+
 
 		# Now that 10 remain play one last game determine final rankings
 		self.play_game()
@@ -207,8 +216,8 @@ class Game:
 		# adjust player rolling queue
 		self.past_players.insert(0, self.players[5:])
 
-		if len(self.past_players) >= 11:
-			self.past_players.pop(10)
+		# if len(self.past_players) >= 11:
+		# 	self.past_players.pop(10)
 
 		self.tournament_num += 1
 		self.player_id = 0
@@ -263,7 +272,7 @@ class Game:
 
 		self.save_players(save_file)
 
-	# SAVING?IMPORTING_PLAYERS
+	# SAVING/IMPORTING_PLAYERS
 	def save_players(self, file_name):
 		file = open(file_name, 'wb')
 		pickle.dump(self.players, file)
@@ -287,4 +296,3 @@ class Game:
 
 		self.clear_fitness_scores()
 		self.clear_bitterness()
-

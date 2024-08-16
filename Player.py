@@ -17,7 +17,7 @@ class Player:
 
 		# INPUT NEURONS
 		self.bitterness = 0
-		self.score_ranking = 1
+		self.score_ranking = 0
 		self.bitterness = 0
 		self.bitterness_memories = []
 
@@ -26,7 +26,12 @@ class Player:
 
 	# GET PLAYER INFO
 	def __str__(self):
-		return f"|{self.id.__str__().center(3, " ")}|{self.game_score.__str__().center(7, " ")}|"
+		return (f"|{self.id.__str__().center(10, " ")}|"
+				f"{self.fitness.__str__().center(10, " ")}|"
+				f"{self.game_score.__str__().center(10, " ")}|")
+
+	def __eq__(self, other):
+		return self.fitness == other.fitness and self.id == other.id and self.network == other.network
 
 	def get_tournament_id(self):
 		return int(self.id.split('-')[0])

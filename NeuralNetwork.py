@@ -33,9 +33,9 @@ class NeuralNetwork:
 		max_output = -inf
 		max_id = 0
 
-		for output_id, output in enumerate(self.layers[self.output_layer]):
-			if output > max_output:
-				max_output = output
+		for output_id, output_neuron in enumerate(self.layers[self.output_layer]):
+			if output_neuron.output > max_output:
+				max_output = output_neuron.output
 				max_id = output_id
 
 		return max_id
@@ -70,7 +70,9 @@ class NeuralNetwork:
 	def cross_over(self, parent0, parent1):
 		for layer_id, layer in enumerate(self.layers):
 			for neuron_id, neuron in enumerate(layer):
-				neuron = choice([parent0.layer[layer_id][neuron_id], parent1.layer[layer_id][neuron_id]])
+				# Select a neuron from of the parents
+				self.layers[layer_id][neuron_id] = choice(
+					[parent0.layers[layer_id][neuron_id], parent1.layers[layer_id][neuron_id]])
 
 	class Neuron:
 		def __init__(self, num_inputs, bias=None, inputs=[], weights=[]):
@@ -125,5 +127,4 @@ class NeuralNetwork:
 			product += self.bias
 
 			self.output = self.activation(product)
-
 			return self.output
