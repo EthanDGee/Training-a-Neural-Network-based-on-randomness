@@ -41,13 +41,13 @@
 - [x] Design training
 - [x] use math to determine chance of bad ai's working there way through
 - [x] Create the tournament
-- [x] Tournament re-population
+- [ ] Tournament re-population
 - [x] Cross Breeding
 - [x] Mutation
 - [x] rolling queue 
-- [x] clear genetic score
-- [x] save players
-- [x] import players
+- [ ] clear genetic score
+- [ ] save players
+- [ ] import players
 - [x] train()
 
 1️⃣ As determined by me so take that as you will 

@@ -135,7 +135,7 @@ class Game:
 			f.write(f"{self.player_count},{self.median_game_score()},\n")
 
 	def print_score_card(self):
-		print(f"{" "*4}ID{" "*4}|  Fitness  |   Score   |")
+		print(f"{" " * 4}ID{" " * 4}|  Fitness  |   Score   |")
 		for player in self.players:
 			print(player)
 
@@ -155,11 +155,13 @@ class Game:
 	def adjust_players_fitness(self):
 
 		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
-		self.players = reversed(sorted(self.players, key=lambda y: y.game_score, ))
+		self.players = sorted(self.players, key=lambda y: y.game_score)
 
 		for placement, player in enumerate(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
 			player.fitness += int((placement + 1) / self.player_count * 100)
+
+		self.players.reverse()
 
 	def clear_fitness_scores(self):
 		# Clears genetic scores for players
@@ -180,13 +182,13 @@ class Game:
 	def adjust_player_ranking(self):
 		self.players = sorted(self.players, key=lambda y: y.game_score)
 
-		for place_ment, player in enumerate(self.players):
-			player.score_ranking = place_ment / self.player_count
+		for placement, player in enumerate(self.players):
+			player.score_ranking = placement / self.player_count
 
 	# TRAINING/Tournament
 	def run_tournament(self):
 
-		# Check to see if there are 50 players and create new players if necessary
+		# Check to see if there are 50 players and create new random players if necessary
 		if self.player_count < 50:
 			missing_players = 50 - self.player_count
 			for _ in range(missing_players):
@@ -194,21 +196,19 @@ class Game:
 
 		# Play Tournament
 		for game_round in range(4):
-
-			print(f"{len(self.players)}->", end="")
-			self.print_score_card()
+			# print(f"{len(self.players)}->", end="")
+			# self.print_score_card()
 
 			self.play_game()
 			self.adjust_players_fitness()
-			self.players = sorted(self.players, key=lambda y: y.fitness)
+
+			self.players = sorted(self.players, key=lambda y: y.fitness, )
 
 			# trim bottom 10
-			self.players = self.players[0:self.player_count - 10]
+			self.players = self.players[:-10]
 			self.player_count -= 10
-			print(len(self.players))
+			# print(len(self.players))
 			self.reset_game()
-
-
 
 		# Now that 10 remain play one last game determine final rankings
 		self.play_game()
@@ -223,11 +223,11 @@ class Game:
 		self.player_id = 0
 
 	def generate_new_tournament_players(self):
+
 		next_tournament_players = self.players[10:]
+		self.players = sorted(self.players, key=lambda y: y.fitness)
 
-		self.players = sorted(self.players, key=lambda y: y.fitness, )
-
-		top_five = deepcopy(self.players[:5])
+		top_five = self.players[0:4]
 
 		# Cross over top five
 		descendants = []
@@ -254,6 +254,17 @@ class Game:
 		# 2 from 10 rounds ago
 		if len(self.past_players) >= 10:
 			next_tournament_players.extend(self.past_players[3])
+
+		# Set Players to be the generated players
+		self.players = next_tournament_players
+		self.player_count = len(self.players)
+
+		# If there are not enough past players fill the gap with random players
+
+		missing_players = 50 - self.player_count
+
+		for _ in range(missing_players):
+			self.create_random_player()
 
 		self.clear_fitness_scores()
 

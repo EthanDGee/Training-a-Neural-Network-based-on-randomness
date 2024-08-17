@@ -1,9 +1,11 @@
+import time
 import unittest
 from copy import deepcopy
 from random import randint
 from Player import Player
 from Game import Game
 from NeuralNetwork import NeuralNetwork
+from time import sleep
 
 
 class MyTestCase(unittest.TestCase):
@@ -35,12 +37,14 @@ class MyTestCase(unittest.TestCase):
 
 	def test_fitness_function(self):
 		game = Game(3, 5)
-		calculated_fitness = [100, 50, 33]
+		calculated_fitness = [100, 66, 33]
 		game_scores = [1000, 300, 5]
 		for x in range(len(game.players)):
 			game.players[x].game_score = game_scores[x]
 
+		game.print_score_card()
 		game.adjust_players_fitness()
+		game.print_score_card()
 
 		for x, player in enumerate(game.players):
 			self.assertEqual(calculated_fitness[x], player.fitness)
@@ -114,36 +118,63 @@ class MyTestCase(unittest.TestCase):
 	def test_init_neuron(self):
 		# CHECK TO SEE IF THAT THE FUNCTION WORKS
 		neuron_0 = NeuralNetwork.Neuron(4)
+		neuron_1 = NeuralNetwork.Neuron(4)
 		self.assertFalse(neuron_0 is None)
-		neuron_5 = NeuralNetwork.Neuron(1)
-		self.assertFalse(neuron_5 is None)
-		neuron_3 = NeuralNetwork.Neuron(2)
-		self.assertFalse(neuron_3 is None)
+		self.assertFalse(neuron_1 is None)
+
 		neuron_2 = NeuralNetwork.Neuron(12)
+		neuron_3 = NeuralNetwork.Neuron(12)
 		self.assertFalse(neuron_2 is None)
+		self.assertFalse(neuron_3 is None)
+
+		neuron_4 = NeuralNetwork.Neuron(1)
+		neuron_5 = NeuralNetwork.Neuron(1)
+		self.assertFalse(neuron_4 is None)
+		self.assertFalse(neuron_5 is None)
+
+		# Check to see that each new neuron is random
+		self.assertFalse(neuron_0 == neuron_1)
+		self.assertFalse(neuron_2 == neuron_3)
+		self.assertFalse(neuron_4 == neuron_5)
 
 	def test_init_neural_network(self):
-		# JUST A SIMPLE CHECK TO SEE THAT
 
 		neural_network_0 = NeuralNetwork(3, [2, 4, 2, 1])
+		neural_network_1 = NeuralNetwork(3, [2, 4, 2, 1])
 		self.assertFalse(neural_network_0 is None)
 		self.assertEqual(4, len(neural_network_0.layers))
+		self.assertFalse(neural_network_0 == neural_network_1) # test to see that they don't match
 
-		neural_network_1 = NeuralNetwork(1, [4, 12, 3])
-		self.assertFalse(neural_network_1 is None)
-		self.assertEqual(3, len(neural_network_1.layers))
+		neural_network_2 = NeuralNetwork(18, [20, 6, 8, 13])
+		neural_network_3 = NeuralNetwork(18, [20, 6, 8, 13])
+		self.assertFalse(neural_network_0 is None)
+		self.assertEqual(4, len(neural_network_0.layers))
+		self.assertFalse(neural_network_0 == neural_network_1)  # test to see that they don't match
 
-		neural_network_2 = NeuralNetwork(3, [2, 1, 2, 1])
-		self.assertFalse(neural_network_2 is None)
-		self.assertEqual(4, len(neural_network_2.layers))
 
-		neural_network_3 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
-		self.assertFalse(neural_network_3 is None)
-		self.assertEqual(8, len(neural_network_3.layers))
-
-		neural_network_4 = NeuralNetwork(3, [2])
+		neural_network_4 = NeuralNetwork(1, [4, 12, 3])
+		neural_network_5 = NeuralNetwork(1, [4, 12, 3])
 		self.assertFalse(neural_network_4 is None)
-		self.assertEqual(1, len(neural_network_4.layers))
+		self.assertEqual(3, len(neural_network_4.layers))
+		self.assertFalse(neural_network_4 == neural_network_5)
+
+		neural_network_6 = NeuralNetwork(3, [2, 1, 2, 1])
+		neural_network_7 = NeuralNetwork(3, [2, 1, 2, 1])
+		self.assertFalse(neural_network_6 is None)
+		self.assertEqual(4, len(neural_network_6.layers))
+		self.assertFalse(neural_network_6 == neural_network_7)
+
+		neural_network_8 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
+		neural_network_9 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
+		self.assertFalse(neural_network_8 is None)
+		self.assertEqual(8, len(neural_network_8.layers))
+		self.assertFalse(neural_network_8 == neural_network_9)
+
+		neural_network_10 = NeuralNetwork(3, [2])
+		neural_network_11 = NeuralNetwork(3, [2])
+		self.assertFalse(neural_network_10 is None)
+		self.assertEqual(1, len(neural_network_10.layers))
+		self.assertFalse(neural_network_10 == neural_network_11)
 
 	def test_save_import(self):
 
@@ -163,13 +194,17 @@ class MyTestCase(unittest.TestCase):
 			self.assertEqual(game0_player, temp_player)
 
 	def test_run_tournament(self):
+
+		# check to see if there are the proper amount of participants is leaving
 		game_0 = Game(50, 10)
 		game_0.run_tournament()
 		self.assertEqual(10, len(game_0.players))
 
 	def test_generate_new_tournament_players(self):
 
-		game_0 = Game(10, 10)
+		# Check to see if the proper amount of players are generated from previous tournaments
+
+		game_0 = Game(50, 10)
 		game_0.run_tournament()
 		game_0.generate_new_tournament_players()
 		self.assertEqual(50, len(game_0.players))
@@ -180,36 +215,20 @@ class MyTestCase(unittest.TestCase):
 		# Parents
 		network_0 = NeuralNetwork(5, [5, 4, 2])
 		network_1 = NeuralNetwork(5, [5, 4, 2])
+		network_2 = NeuralNetwork(5, [1, 2, 3])
 
-		network_2 = NeuralNetwork(5, [5, 4, 2])
 		network_2.cross_over(network_0, network_1)
 
-		for layer in enumerate(network_2.layers):
-
-			# Check Sizes
-			self.assertEqual(len(network_0.layers[layer]), len(network_2.layers[layer]))
-			self.assertEqual(len(network_1.layers[layer]), len(network_2.layers[layer]))
-
-			for neuron in enumerate(network_2.layers[layer]):
-				# Check to see if their neurons come from one of the parents
-				self.assertTrue(network_0.layers[layer][neuron] == network_2.layers[layer][neuron] ^
-								network_1.layers[layer][neuron] == network_2.layers[layer][neuron])
+		self.assertTrue(network_2.check_network_from_parents(network_0, network_1))
 
 		# TEST 2
 		network_3 = NeuralNetwork(10, [3, 13, 7])
 		network_4 = NeuralNetwork(10, [3, 13, 7])
-
 		network_5 = NeuralNetwork(10, [3, 13, 7])
+
 		network_5.cross_over(network_3, network_4)
 
-		for layer in enumerate(network_5.layers):
-			self.assertEqual(len(network_3.layers[layer]), len(network_5.layers[layer]))
-			self.assertEqual(len(network_4.layers[layer]), len(network_5.layers[layer]))
-
-			for neuron in enumerate(network_5.layers[layer]):
-				# Check to see if their neurons come from one of the parents
-				self.assertTrue(network_3.layers[layer][neuron] == network_5.layers[layer][neuron] ^
-								network_4.layers[layer][neuron] == network_5.layers[layer][neuron])
+		self.assertTrue(network_5.check_network_from_parents(4, network_3))
 
 
 if __name__ == '__main__':
