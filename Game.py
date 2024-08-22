@@ -36,6 +36,9 @@ class Game:
 			self.players.append(Player(f"{self.tournament_num}-{self.player_id}"))
 			self.player_id += 1
 
+	def __eq__(self, other):
+		return self.players == other.players
+
 	# GAME LOGIC METHODS
 	def bankable(self):
 		return self.roll_num > self.STARTER_ROUNDS
@@ -148,7 +151,7 @@ class Game:
 		# Gives a new Player
 		new_player = Player(f"{self.tournament_num}-{self.player_id}")
 		self.player_id += 1
-
+		self.players.append(new_player)
 		return new_player
 
 	# INPUT NEURONS/FITNESS METHODS
@@ -180,6 +183,7 @@ class Game:
 			player.calculate_bitterness()
 
 	def adjust_player_ranking(self):
+		self.player_count = len(self.players)
 		self.players = sorted(self.players, key=lambda y: y.game_score)
 
 		for placement, player in enumerate(self.players):
@@ -196,9 +200,6 @@ class Game:
 
 		# Play Tournament
 		for game_round in range(4):
-			# print(f"{len(self.players)}->", end="")
-			# self.print_score_card()
-
 			self.play_game()
 			self.adjust_players_fitness()
 
@@ -207,7 +208,6 @@ class Game:
 			# trim bottom 10
 			self.players = self.players[:-10]
 			self.player_count -= 10
-			# print(len(self.players))
 			self.reset_game()
 
 		# Now that 10 remain play one last game determine final rankings
@@ -224,19 +224,18 @@ class Game:
 
 	def generate_new_tournament_players(self):
 
-		next_tournament_players = self.players[10:]
 		self.players = sorted(self.players, key=lambda y: y.fitness)
-
-		top_five = self.players[0:4]
+		next_tournament_players = self.players[:10]
+		top_five = self.players[:5]
 
 		# Cross over top five
 		descendants = []
-		for i in range(len(top_five)):  # 5 choose 2 grouping
+		for i in range(5):  # 5 choose 2 grouping
 			for j in range(i, 5):
 				if i != j:
 					# Repeat 3 times for variety
 					for _ in range(3):
-						descendants.extend(self.cross_over(top_five[i], top_five[j]))
+						descendants.append(self.cross_over(top_five[i], top_five[j]))
 
 		# Mutate Descendants
 		for descendant in descendants:
@@ -259,13 +258,13 @@ class Game:
 		self.players = next_tournament_players
 		self.player_count = len(self.players)
 
-		# If there are not enough past players fill the gap with random players
+		# If there are not enough past players fill the gap with random players until the queue fills
 
-		missing_players = 50 - self.player_count
+		missing_players = 50 - len(next_tournament_players)
 
-		for _ in range(missing_players):
+		for x in range(missing_players):
 			self.create_random_player()
-
+		self.player_count = len(self.players)
 		self.clear_fitness_scores()
 
 	def cross_over(self, parent0, parent1):
@@ -279,13 +278,19 @@ class Game:
 
 		for tournament in range(num_tournaments):
 			self.run_tournament()
-			self.generate_new_tournament_players()
+			# for the final tournament don't regenerate new players that way only the top ten are saved
+			if tournament < num_tournaments-1:
+				self.generate_new_tournament_players()
+
+			if tournament % 25 ==  0:
+				self.save_players(f"{save_file}-{tournament}")
+				print(f"Saved Players {tournament} {str(tournament/num_tournaments)[0:4]}%")
 
 		self.save_players(save_file)
 
 	# SAVING/IMPORTING_PLAYERS
 	def save_players(self, file_name):
-		file = open(file_name, 'wb')
+		file = open(f"{file_name}.json", 'wb')
 		pickle.dump(self.players, file)
 		file.close()
 

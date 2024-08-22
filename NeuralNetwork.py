@@ -1,46 +1,48 @@
 from math import inf, tanh
 from random import random, choice
+from copy import deepcopy
+
 
 class NeuralNetwork:
 	def __init__(self, num_inputs, layer_layout):
 		# Layer layout is formatted like [5,3,3] which means 3 hidden layers with the requisite amount of neurons
-
 		self.num_inputs = num_inputs
 		self.inputs = []
 
-		self.num_outputs = layer_layout[:-1]
+		self.num_outputs = layer_layout[-1]
 		self.output_layer = len(layer_layout) - 1
 
 		self.num_layers = len(layer_layout)
 		self.layers = []
 
-		self.mutation_chance = 0.05
+		self.mutation_chance = 0.1
 
 		# Create Random Layers
-		input_numbers = [num_inputs]
-		input_numbers.extend(layer_layout[:-1])
+		input_numbers = deepcopy(layer_layout)
+		input_numbers.insert(0, num_inputs)
+
 		for layer_num, neuron_amount in enumerate(layer_layout):
-			# print(f"{layer_num}_{neuron_amount}")
 			hidden_layer = []
+
 			for i in range(neuron_amount):
-				# print(f"{hidden_layer}")
 				new_neuron = self.Neuron(input_numbers[layer_num])
 				hidden_layer.append(new_neuron)
+				del new_neuron
 
 			self.layers.insert(layer_num, hidden_layer)
 
 	def __eq__(self, other):
 		for layer_id, layer in enumerate(self.layers):
-			for neuron in range(len(layer)):
-				print(layer[neuron])
-				print(self.layers[layer_id][neuron])
-
-
-			if layer == other.layers[layer_id]:
+			# for neuron in range(len(layer)):
+			# 	print(layer[neuron])
+			# 	print(self.layers[layer_id][neuron])
+			if layer != other.layers[layer_id]:
 				return False
+			# for neuron_id, neuron in enumerate(layer):
+			# 	if neuron != other.layers[layer_id][neuron_id]:
+			# 		 print(f"{neuron}{other.layers[layer_id][neuron_id]}")
+			# 		return False
 		return True
-
-
 
 	def check_network_from_parents(self, parent_0, parent_1):
 
@@ -91,27 +93,27 @@ class NeuralNetwork:
 		for layer in self.layers:
 			for neuron in layer:
 				if random() < self.mutation_chance:
-					neuron.mutate_network()
+					neuron.mutate()
 
 	def cross_over(self, parent0, parent1):
 		self.layers = parent0.layers
 		self.inputs = parent0.inputs
 
-		print(len(self.layers))
+		# print(len(self.layers))
 		for layer_id, layer in enumerate(self.layers):
 			for neuron_id, neuron in enumerate(layer):
-				print(f"{layer_id}, {neuron_id}")
-				print(type(parent0.layers[layer_id][neuron_id]))
-				print(type(parent1.layers[layer_id][neuron_id]))
+				# print(f"{layer_id}, {neuron_id}")
+				# print(type(parent0.layers[layer_id][neuron_id]))
+				# print(type(parent1.layers[layer_id][neuron_id]))
 				# Select a neuron from of the parents
 				possible_neurons = [parent0.layers[layer_id][neuron_id], parent1.layers[layer_id][neuron_id]]
 
 				self.layers[layer_id][neuron_id] = choice(possible_neurons)
 
-				if self.layers[layer_id][neuron_id] == parent0.layers[layer_id][neuron_id]:
-					print("Neuron 0 Selected")
-				else:
-					print("Neuron 1 Selected")
+				# if self.layers[layer_id][neuron_id] == parent0.layers[layer_id][neuron_id]:
+				# 	print("Neuron 0 Selected")
+				# else:
+				# 	print("Neuron 1 Selected")
 
 	class Neuron:
 		def __init__(self, num_inputs, bias=None, inputs=[], weights=[]):
@@ -154,6 +156,7 @@ class NeuralNetwork:
 			return (tanh(num) + 1) / 2
 
 		def calculate_output(self):
+
 			product = 0
 			for i, input_value in enumerate(self.inputs):
 				product += input_value * self.weights[i]

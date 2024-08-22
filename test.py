@@ -1,11 +1,9 @@
-import time
 import unittest
 from copy import deepcopy
 from random import randint
 from Player import Player
 from Game import Game
 from NeuralNetwork import NeuralNetwork
-from time import sleep
 
 
 class MyTestCase(unittest.TestCase):
@@ -121,59 +119,59 @@ class MyTestCase(unittest.TestCase):
 		neuron_1 = NeuralNetwork.Neuron(4)
 		self.assertFalse(neuron_0 is None)
 		self.assertFalse(neuron_1 is None)
+		self.assertNotEqual(neuron_0, neuron_1)
 
 		neuron_2 = NeuralNetwork.Neuron(12)
 		neuron_3 = NeuralNetwork.Neuron(12)
 		self.assertFalse(neuron_2 is None)
 		self.assertFalse(neuron_3 is None)
+		self.assertNotEqual(neuron_2, neuron_3)
 
 		neuron_4 = NeuralNetwork.Neuron(1)
 		neuron_5 = NeuralNetwork.Neuron(1)
 		self.assertFalse(neuron_4 is None)
 		self.assertFalse(neuron_5 is None)
-
-		# Check to see that each new neuron is random
-		self.assertFalse(neuron_0 == neuron_1)
-		self.assertFalse(neuron_2 == neuron_3)
-		self.assertFalse(neuron_4 == neuron_5)
+		self.assertNotEqual(neuron_4, neuron_5)
 
 	def test_init_neural_network(self):
 
 		neural_network_0 = NeuralNetwork(3, [2, 4, 2, 1])
-		neural_network_1 = NeuralNetwork(3, [2, 4, 2, 1])
+
 		self.assertFalse(neural_network_0 is None)
 		self.assertEqual(4, len(neural_network_0.layers))
-		self.assertFalse(neural_network_0 == neural_network_1) # test to see that they don't match
 
 		neural_network_2 = NeuralNetwork(18, [20, 6, 8, 13])
-		neural_network_3 = NeuralNetwork(18, [20, 6, 8, 13])
-		self.assertFalse(neural_network_0 is None)
-		self.assertEqual(4, len(neural_network_0.layers))
-		self.assertFalse(neural_network_0 == neural_network_1)  # test to see that they don't match
-
+		self.assertFalse(neural_network_2 is None)
+		self.assertEqual(4, len(neural_network_2.layers))
 
 		neural_network_4 = NeuralNetwork(1, [4, 12, 3])
-		neural_network_5 = NeuralNetwork(1, [4, 12, 3])
 		self.assertFalse(neural_network_4 is None)
 		self.assertEqual(3, len(neural_network_4.layers))
-		self.assertFalse(neural_network_4 == neural_network_5)
 
 		neural_network_6 = NeuralNetwork(3, [2, 1, 2, 1])
-		neural_network_7 = NeuralNetwork(3, [2, 1, 2, 1])
 		self.assertFalse(neural_network_6 is None)
 		self.assertEqual(4, len(neural_network_6.layers))
-		self.assertFalse(neural_network_6 == neural_network_7)
 
 		neural_network_8 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
-		neural_network_9 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
 		self.assertFalse(neural_network_8 is None)
 		self.assertEqual(8, len(neural_network_8.layers))
-		self.assertFalse(neural_network_8 == neural_network_9)
 
 		neural_network_10 = NeuralNetwork(3, [2])
-		neural_network_11 = NeuralNetwork(3, [2])
 		self.assertFalse(neural_network_10 is None)
 		self.assertEqual(1, len(neural_network_10.layers))
+
+		# CHECk FOR RANDOMNESS
+		neural_network_1 = NeuralNetwork(3, [2, 4, 2, 1])
+		neural_network_3 = NeuralNetwork(18, [20, 6, 8, 13])
+		neural_network_5 = NeuralNetwork(1, [4, 12, 3])
+		neural_network_7 = NeuralNetwork(3, [2, 1, 2, 1])
+		neural_network_9 = NeuralNetwork(10, [12, 4, 6, 7, 1, 6, 32, 12])
+		neural_network_11 = NeuralNetwork(3, [2])
+		self.assertFalse(neural_network_0 == neural_network_1)
+		self.assertFalse(neural_network_2 == neural_network_3)
+		self.assertFalse(neural_network_4 == neural_network_5)
+		self.assertFalse(neural_network_6 == neural_network_7)
+		self.assertFalse(neural_network_8 == neural_network_9)
 		self.assertFalse(neural_network_10 == neural_network_11)
 
 	def test_save_import(self):
@@ -189,8 +187,8 @@ class MyTestCase(unittest.TestCase):
 		for player_num in range(len(game0.players)):
 			temp_player = temp_game.players[player_num]
 			game0_player = game0.players[player_num]
-			print(temp_player)
-			print(game0_player)
+			# print(temp_player)
+			# print(game0_player)
 			self.assertEqual(game0_player, temp_player)
 
 	def test_run_tournament(self):
@@ -208,6 +206,12 @@ class MyTestCase(unittest.TestCase):
 		game_0.run_tournament()
 		game_0.generate_new_tournament_players()
 		self.assertEqual(50, len(game_0.players))
+
+	def test_train(self):
+		game0 = Game(50, 10)
+		original_players = deepcopy(game0.players)
+		game0.train(10, "temp.json")
+		self.assertNotEqual(original_players, game0.players)
 
 	def test_cross_over(self):
 
