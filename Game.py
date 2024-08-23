@@ -3,7 +3,6 @@ from random import randint
 from copy import deepcopy
 from Player import Player
 import pickle
-from time import time
 
 
 class Game:
@@ -285,18 +284,15 @@ class Game:
 	def train(self, num_tournaments, save_file):
 
 		for tournament in range(num_tournaments):
-			start = time()
+
 			self.run_tournament()
 			# for the final tournament don't regenerate new players that way only the top ten are saved
 			if tournament < num_tournaments - 1:
 				self.generate_new_tournament_players()
 
-			if tournament % 25 == 0:
+			if tournament % 100 == 0:
 				self.save_players(f"{save_file}-{tournament}")
-				# self.print_score_card()
-				print(f"Saved Players {tournament} {str(100 * (tournament / num_tournaments))[0:4]}%")
-				# print(len(self.players))
-			print(f"{tournament}-{str(time() - start)[0:5]}")
+				print(f"Saved Players {tournament} {str(100 * (tournament / num_tournaments))[0:5]}%")
 
 		self.save_players(save_file)
 

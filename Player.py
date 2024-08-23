@@ -1,5 +1,4 @@
 from NeuralNetwork import NeuralNetwork
-from random import randint
 
 
 class Player:
@@ -43,13 +42,6 @@ class Player:
 		self.id = f"{tournament}-{player_id}"
 
 	# BANKING
-	def dummy_decide_to_bank(self, running_point_total):
-		# FILLER FUNCTION JUST USED TO SIMULATE GAMES WHILE THERE IS NO AI
-		self.banked = randint(0, self.id) == 0
-		if self.banked:
-			self.banked_score = running_point_total
-
-		return self.banked
 
 	def decide_to_bank(self, running_point_total, percent_rounds_completed, roll_num, percent_remaining_players,
 					   last_roll_similarity_to_seven, rolls_since_double):

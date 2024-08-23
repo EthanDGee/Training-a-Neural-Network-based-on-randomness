@@ -15,7 +15,7 @@ class NeuralNetwork:
 		self.num_layers = len(layer_layout)
 		self.layers = []
 
-		self.mutation_chance = 0.1
+		self.mutation_chance = 0.01
 
 		# Create Random Layers
 		input_numbers = deepcopy(layer_layout)
@@ -122,7 +122,7 @@ class NeuralNetwork:
 			self.num_weights = num_inputs
 			self.inputs = inputs
 			self.output = 0
-			self.mutation_step = 0.05
+			self.mutation_step = 0.005
 
 			# If empty assign random weights and biases
 			if bias is None:
