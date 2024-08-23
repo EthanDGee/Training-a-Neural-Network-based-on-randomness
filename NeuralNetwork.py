@@ -122,7 +122,7 @@ class NeuralNetwork:
 			self.num_weights = num_inputs
 			self.inputs = inputs
 			self.output = 0
-			self.mutation_step = 0.03
+			self.mutation_step = 0.05
 
 			# If empty assign random weights and biases
 			if bias is None:

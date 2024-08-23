@@ -22,7 +22,7 @@ class Player:
 		self.bitterness_memories = []
 
 		# NEURAL NET
-		self.network = NeuralNetwork(4, [4, 4, 2])
+		self.network = NeuralNetwork(4, [4, 2])
 
 	# GET PLAYER INFO
 	def __str__(self):
@@ -38,6 +38,9 @@ class Player:
 
 	def get_player_id(self):
 		return int(self.id.split('-')[1])
+
+	def set_player_id(self, tournament, player_id):
+		self.id = f"{tournament}-{player_id}"
 
 	# BANKING
 	def dummy_decide_to_bank(self, running_point_total):

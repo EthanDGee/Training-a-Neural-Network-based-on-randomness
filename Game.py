@@ -3,6 +3,7 @@ from random import randint
 from copy import deepcopy
 from Player import Player
 import pickle
+from time import time
 
 
 class Game:
@@ -82,6 +83,7 @@ class Game:
 
 	# GAME METHODS
 	def play_game(self):
+		self.clear_game_scores()
 		for game_round in range(self.total_rounds):
 			self.play_round()
 
@@ -123,6 +125,11 @@ class Game:
 			player.banked = False
 
 	# SCORE METHODS
+
+	def clear_game_scores(self):
+		for player in self.players:
+			player.game_score = 0
+
 	def average_game_score(self):
 		# returns the average game score
 
@@ -227,21 +234,21 @@ class Game:
 		self.players = sorted(self.players, key=lambda y: y.fitness)
 		next_tournament_players = self.players[:10]
 		top_five = self.players[:5]
+		self.players = []
 
+		player_id = 0
 		# Cross over top five
-		descendants = []
 		for i in range(5):  # 5 choose 2 grouping
 			for j in range(i, 5):
 				if i != j:
 					# Repeat 3 times for variety
 					for _ in range(3):
-						descendants.append(self.cross_over(top_five[i], top_five[j]))
+						child = self.cross_over(top_five[i], top_five[j])
+						child.network.mutate_network()
+						child.set_player_id(self.tournament_num, player_id)
+						player_id +=1
+						next_tournament_players.append(child)
 
-		# Mutate Descendants
-		for descendant in descendants:
-			descendant.network.mutate_network()
-
-		next_tournament_players.extend(descendants)
 		# Fetch players from previous rounds
 
 		# 5 from 3 rounds ago
@@ -277,14 +284,17 @@ class Game:
 	def train(self, num_tournaments, save_file):
 
 		for tournament in range(num_tournaments):
+			start = time()
 			self.run_tournament()
 			# for the final tournament don't regenerate new players that way only the top ten are saved
-			if tournament < num_tournaments-1:
+			if tournament < num_tournaments - 1:
 				self.generate_new_tournament_players()
 
-			if tournament % 25 ==  0:
+			if tournament % 5 == 0:
 				self.save_players(f"{save_file}-{tournament}")
-				print(f"Saved Players {tournament} {str(tournament/num_tournaments)[0:4]}%")
+				self.print_score_card()
+				# print(f"Saved Players {tournament} {str(tournament / num_tournaments)[0:4] * 100}%")
+			print(f"{tournament}-{str(time() - start)[0:5]}")
 
 		self.save_players(save_file)
 
