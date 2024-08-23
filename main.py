@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
 	save_file = input("Enter save file name: ")
 
-	bank.train(500, save_file)
+	bank.train(10_000, save_file)
 	# bank.run_tournament()
 	print("RESULTS")
 

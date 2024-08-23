@@ -116,7 +116,8 @@ class Game:
 	def ask_players_about_banking(self):
 		for player in self.players:
 			if not player.banked and player.decide_to_bank(self.running_point_total, self.percent_rounds_complete,
-														   self.roll_num):
+														   self.roll_num, self.percent_remaining_players,
+														   self.last_roll_similarity_to_seven, self.rolls_since_double):
 				self.remaining_players -= 1
 				self.percent_remaining_players = self.remaining_players / self.player_count
 
@@ -246,7 +247,7 @@ class Game:
 						child = self.cross_over(top_five[i], top_five[j])
 						child.network.mutate_network()
 						child.set_player_id(self.tournament_num, player_id)
-						player_id +=1
+						player_id += 1
 						next_tournament_players.append(child)
 
 		# Fetch players from previous rounds
@@ -293,8 +294,8 @@ class Game:
 			if tournament % 25 == 0:
 				self.save_players(f"{save_file}-{tournament}")
 				# self.print_score_card()
-				print(f"Saved Players {tournament} {str(100*(tournament / num_tournaments))[0:4]}%")
-				print(len(self.players))
+				print(f"Saved Players {tournament} {str(100 * (tournament / num_tournaments))[0:4]}%")
+				# print(len(self.players))
 			print(f"{tournament}-{str(time() - start)[0:5]}")
 
 		self.save_players(save_file)

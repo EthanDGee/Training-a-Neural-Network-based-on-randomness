@@ -22,7 +22,7 @@ class Player:
 		self.bitterness_memories = []
 
 		# NEURAL NET
-		self.network = NeuralNetwork(4, [5, 4, 2])
+		self.network = NeuralNetwork(8, [7, 6, 4, 2])
 
 	# GET PLAYER INFO
 	def __str__(self):
@@ -51,9 +51,11 @@ class Player:
 
 		return self.banked
 
-	def decide_to_bank(self, running_point_total, percent_rounds_completed, roll_num):
+	def decide_to_bank(self, running_point_total, percent_rounds_completed, roll_num, percent_remaining_players,
+					   last_roll_similarity_to_seven, rolls_since_double):
 
-		inputs = [running_point_total, percent_rounds_completed, roll_num, self.score_ranking]
+		inputs = [running_point_total, percent_rounds_completed, roll_num, self.score_ranking,
+				  percent_remaining_players, last_roll_similarity_to_seven, self.bitterness, rolls_since_double]
 
 		# Calculate output
 		self.network.calculate_output(inputs)
