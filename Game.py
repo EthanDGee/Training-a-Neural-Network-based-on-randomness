@@ -165,7 +165,7 @@ class Game:
 	def adjust_players_fitness(self):
 
 		# Sort players by game score and then assign them a genetic score by using that to give them a linear score +
-		self.players = sorted(self.players, key=lambda y: y.game_score)
+		self.players = sorted(self.players, key=lambda y: y.game_score, reverse=True)
 
 		for placement, player in enumerate(self.players):
 			# score adjusted for player count as larger player count leads to higher scores
@@ -210,7 +210,7 @@ class Game:
 			self.play_game()
 			self.adjust_players_fitness()
 
-			self.players = sorted(self.players, key=lambda y: y.fitness, )
+			self.players = sorted(self.players, key=lambda y: y.fitness, reverse=True)
 
 			# trim bottom 10
 			self.players = self.players[:-10]
@@ -219,21 +219,21 @@ class Game:
 
 		# Now that 10 remain play one last game determine final rankings
 		self.play_game()
-		self.players = sorted(self.players, key=lambda y: y.fitness, )
+		self.players = sorted(self.players, key=lambda y: y.fitness, reverse=True)
 		# adjust player rolling queue
-		self.past_players.insert(0, self.players[5:])
+		self.past_players.insert(0, self.players[0:5])
 
-		# if len(self.past_players) >= 11:
-		# 	self.past_players.pop(10)
+		if len(self.past_players) >= 11:
+			self.past_players = self.past_players[0:10]
 
 		self.tournament_num += 1
 		self.player_id = 0
 
 	def generate_new_tournament_players(self):
 
-		self.players = sorted(self.players, key=lambda y: y.fitness)
-		next_tournament_players = self.players[:10]
-		top_five = self.players[:5]
+		self.players = sorted(self.players, key=lambda y: y.fitness, reverse=True)
+		next_tournament_players = self.players[0:10]
+		top_five = self.players[0:5]
 		self.players = []
 
 		player_id = 0
@@ -253,13 +253,13 @@ class Game:
 
 		# 5 from 3 rounds ago
 		if len(self.past_players) >= 3:
-			next_tournament_players.extend(self.past_players[2])
+			next_tournament_players.extend(self.past_players[2][0:5])
 		# 3 from 5 rounds ago
 		if len(self.past_players) >= 5:
-			next_tournament_players.extend(self.past_players[4][3:])
+			next_tournament_players.extend(self.past_players[4][0:3])
 		# 2 from 10 rounds ago
 		if len(self.past_players) >= 10:
-			next_tournament_players.extend(self.past_players[3])
+			next_tournament_players.extend(self.past_players[9][0:2])
 
 		# Set Players to be the generated players
 		self.players = next_tournament_players
@@ -290,10 +290,11 @@ class Game:
 			if tournament < num_tournaments - 1:
 				self.generate_new_tournament_players()
 
-			if tournament % 5 == 0:
+			if tournament % 25 == 0:
 				self.save_players(f"{save_file}-{tournament}")
-				self.print_score_card()
-				# print(f"Saved Players {tournament} {str(tournament / num_tournaments)[0:4] * 100}%")
+				# self.print_score_card()
+				print(f"Saved Players {tournament} {str(100*(tournament / num_tournaments))[0:4]}%")
+				print(len(self.players))
 			print(f"{tournament}-{str(time() - start)[0:5]}")
 
 		self.save_players(save_file)

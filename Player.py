@@ -22,7 +22,7 @@ class Player:
 		self.bitterness_memories = []
 
 		# NEURAL NET
-		self.network = NeuralNetwork(4, [4, 2])
+		self.network = NeuralNetwork(4, [5, 4, 2])
 
 	# GET PLAYER INFO
 	def __str__(self):

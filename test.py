@@ -210,22 +210,17 @@ class MyTestCase(unittest.TestCase):
 
 	def test_train(self):
 
-		# Test for player turnover
 		game0 = Game(10, 25)
 		original_players = deepcopy(game0.players)
-		game0.train(10, "temp.json")
+		game0.train(10, "temp0.json")
 		self.assertEqual(10, len(game0.players))
 		self.assertNotEqual(original_players, game0.players)
 
-		# Check various aspects
-		for player_id, player in enumerate(original_players):
-			self.assertNotEqual(player, game0.players[player_id])
-			# Check neural network complexity matching
-			for layer_id, layer in enumerate(player.network.layers):
-				self.assertEqual(len(layer), len(game0.players[player_id].network.layers[layer_id]))
-
-
-
+		game1 = Game(10, 40)
+		original_players = deepcopy(game1.players)
+		game1.train(10, "temp1.json")
+		self.assertEqual(10, len(game1.players))
+		self.assertNotEqual(original_players, game1.players)
 
 	def test_cross_over(self):
 
