@@ -5,6 +5,7 @@ class Player:
 	def __init__(self, player_id: str):
 		# INFO
 		self.id = player_id  # tournament id - iterated id
+		self.human = False
 
 		# FITNESS
 		self.fitness = 0
@@ -56,9 +57,17 @@ class Player:
 		if self.network.select_action() == 1:
 			self.banked = True
 			self.banked_score = running_point_total
-			self.fitness += running_point_total
 
 		return self.banked
+
+	def human_decide_to_bank(self, running_point_total):
+
+		if input(f"Does {self.id} want to bank (y/n): ") == 'y':
+			self.banked = True
+			self.banked_score = running_point_total
+
+		return self.banked
+
 
 	# PLAYER INPUTS
 

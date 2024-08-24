@@ -94,6 +94,54 @@ class Game:
 			self.roll_num = 0
 			self.rolls_since_double = 0
 
+	def manual_game(self):
+
+		self.clear_game_scores()
+		for game_round in range(self.total_rounds):
+			# play a round
+			self.manual_round()
+
+			self.round_num += 1
+			self.percent_rounds_complete = self.round_num / self.total_rounds
+
+			# reset round info
+			self.remaining_players = self.player_count
+			self.roll_num = 0
+			self.rolls_since_double = 0
+
+	def manual_round(self):
+		round_over = False
+		while not round_over:
+			round_over = self.roll_dice() or self.remaining_players == 0
+			print(f"{self.roll_num}: Rolled a {self.roll_total}.  Bank: {self.running_point_total}")
+
+			if self.bankable() and not round_over:
+				self.print_score_card()
+				for player in self.players:
+
+					if not player.human:
+						if not player.banked and player.decide_to_bank(self.running_point_total,
+																	   self.percent_rounds_complete,
+																	   self.roll_num, self.percent_remaining_players,
+																	   self.last_roll_similarity_to_seven,
+																	   self.rolls_since_double):
+							self.remaining_players -= 1
+							self.percent_remaining_players = self.remaining_players / self.player_count
+					else:
+						if not player.banked and player.human_decide_to_bank():
+							self.remaining_players -= 1
+							self.percent_remaining_players = self.remaining_players / self.player_count
+
+		if self.remaining_players != 0:
+			print("Everyone Has Banked move onto next round:")
+		else:
+			print("Rolled a 7, moving onto next round.")
+
+		# reset bank-ability and other statistics
+		self.reset_bank_ability()
+		self.adjust_bitterness()
+		self.adjust_player_ranking()
+
 	def reset_game(self):
 		self.round_num = 0
 		self.percent_rounds_complete = 0
@@ -292,8 +340,9 @@ class Game:
 
 			if tournament % 100 == 0:
 				self.save_players(f"{save_file}-{tournament}")
-				print(f"Saved Players {tournament} {str(100 * (tournament / num_tournaments))[0:5]}%")
-
+				print(f"Saved Players {tournament}\n")
+			if tournament % 10:
+				print(f"{str(100 * (tournament / num_tournaments))[0:5]}%")
 		self.save_players(save_file)
 
 	# SAVING/IMPORTING_PLAYERS
